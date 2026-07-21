@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+.env
+.env.local
+
+# SQLite database (generated at runtime, never committed)
+server/data/*.sqlite3
+server/data/*.sqlite3-*
