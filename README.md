@@ -30,8 +30,9 @@ data through the UI.
 
 - **Client**: React + TypeScript + Vite, Tailwind CSS, React Router,
   `@dnd-kit` for drag-and-drop, Recharts for charts.
-- **Server**: Node + Express + TypeScript, `better-sqlite3` (file-based, zero
-  setup — no external database required).
+- **Server**: Node + Express + TypeScript, `sql.js` (a WASM build of SQLite,
+  file-based — no external database, and no native build tools/Python
+  required to install it, unlike native SQLite bindings).
 
 ## Getting started
 
