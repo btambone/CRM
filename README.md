@@ -43,6 +43,10 @@ npm run dev            # runs the API (port 4000) and the client (port 5173)
 
 Then open http://localhost:5173.
 
+On Windows, after the first `npm run install:all`, you can just
+double-click `start-crm.bat` (or a desktop shortcut to it) to start both
+servers and open the browser automatically.
+
 The SQLite database file is created automatically at
 `server/data/crm.sqlite3` on first run.
 

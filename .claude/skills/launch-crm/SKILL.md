@@ -19,7 +19,15 @@ install dependencies first:
 npm run install:all
 ```
 
-## Every time
+## Easiest way: double-click start-crm.bat
+
+The repo root has `start-crm.bat`. Double-clicking it (or a desktop
+shortcut to it) opens a terminal, starts both servers, and automatically
+opens http://localhost:5173 in the browser after a few seconds. To make a
+desktop shortcut: right-click `start-crm.bat` in File Explorer → *Send to*
+→ *Desktop (create shortcut)*.
+
+## Manual way (PowerShell)
 
 1. Open PowerShell.
 2. Go to the project folder:
