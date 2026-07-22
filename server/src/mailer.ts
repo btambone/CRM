@@ -38,7 +38,10 @@ export interface MergeContact {
   last_name: string;
   email: string | null;
   company_name?: string | null;
+  home_value?: string | null;
 }
+
+export const HOME_VALUE_PATTERN = /\{\{\s*home_value\s*\}\}/i;
 
 export function mergeTemplate(template: string, contact: MergeContact): string {
   return template
@@ -46,5 +49,6 @@ export function mergeTemplate(template: string, contact: MergeContact): string {
     .replace(/\{\{\s*last_name\s*\}\}/gi, contact.last_name || "")
     .replace(/\{\{\s*full_name\s*\}\}/gi, `${contact.first_name || ""} ${contact.last_name || ""}`.trim())
     .replace(/\{\{\s*email\s*\}\}/gi, contact.email || "")
-    .replace(/\{\{\s*company_name\s*\}\}/gi, contact.company_name || "");
+    .replace(/\{\{\s*company_name\s*\}\}/gi, contact.company_name || "")
+    .replace(/\{\{\s*home_value\s*\}\}/gi, contact.home_value || "your home's current value");
 }

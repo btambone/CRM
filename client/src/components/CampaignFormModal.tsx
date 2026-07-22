@@ -97,8 +97,15 @@ export default function CampaignFormModal({
           />
           <p className="text-xs text-slate-400 mt-1">
             Merge fields: <code>{"{{first_name}}"}</code> <code>{"{{last_name}}"}</code>{" "}
-            <code>{"{{full_name}}"}</code> <code>{"{{company_name}}"}</code>
+            <code>{"{{full_name}}"}</code> <code>{"{{company_name}}"}</code>{" "}
+            <code>{"{{home_value}}"}</code>
           </p>
+          {body.match(/\{\{\s*home_value\s*\}\}/i) && (
+            <p className="text-xs text-amber-600 mt-1">
+              This looks up a live home value for each recipient with a property address on file
+              (needs RENTCAST_API_KEY set — see server/.env.example) and costs a small fee per lookup.
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">

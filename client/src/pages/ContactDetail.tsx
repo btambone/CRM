@@ -5,7 +5,7 @@ import Avatar from "../components/Avatar";
 import ContactFormModal from "../components/ContactFormModal";
 import { api } from "../lib/api";
 import type { Company, Contact } from "../lib/types";
-import { formatCurrency, formatDate } from "../lib/format";
+import { formatCurrency, formatDate, formatDateTime } from "../lib/format";
 
 const STAGE_LABELS: Record<string, string> = {
   new_lead: "New Lead",
@@ -22,6 +22,8 @@ export default function ContactDetail() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [valuationError, setValuationError] = useState("");
 
   async function load() {
     if (!id) return;
@@ -35,6 +37,20 @@ export default function ContactDetail() {
   useEffect(() => {
     load();
   }, [id]);
+
+  async function handleRefreshValuation() {
+    if (!contact) return;
+    setRefreshing(true);
+    setValuationError("");
+    try {
+      const valuations = await api.contacts.refreshValuation(contact.id);
+      setContact((prev) => (prev ? { ...prev, valuations } : prev));
+    } catch (err: any) {
+      setValuationError(err.message || "Failed to fetch home value");
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   async function handleDelete() {
     if (!contact) return;
@@ -84,8 +100,55 @@ export default function ContactDetail() {
             <h3 className="text-sm font-semibold text-slate-900">Contact Info</h3>
             <InfoRow label="Email" value={contact.email} />
             <InfoRow label="Phone" value={contact.phone} />
+            <InfoRow label="Property" value={contact.property_address} />
             <InfoRow label="Added" value={formatDate(contact.created_at)} />
           </div>
+
+          {contact.property_address && (
+            <div className="card p-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">Home Value</h3>
+                <button className="btn-secondary text-xs px-2 py-1" onClick={handleRefreshValuation} disabled={refreshing}>
+                  {refreshing ? "Fetching..." : contact.valuations?.length ? "Refresh" : "Get Home Value"}
+                </button>
+              </div>
+              {valuationError && <p className="text-xs text-rose-600">{valuationError}</p>}
+              {(!contact.valuations || contact.valuations.length === 0) && !valuationError && (
+                <p className="text-sm text-slate-400">No estimate yet.</p>
+              )}
+              {contact.valuations && contact.valuations.length > 0 && (
+                <>
+                  <div className="text-2xl font-semibold text-brand-600">
+                    {formatCurrency(contact.valuations[0].estimated_value ?? 0)}
+                  </div>
+                  {contact.valuations[0].range_low != null && contact.valuations[0].range_high != null && (
+                    <p className="text-xs text-slate-400">
+                      Range {formatCurrency(contact.valuations[0].range_low ?? 0)} –{" "}
+                      {formatCurrency(contact.valuations[0].range_high ?? 0)}
+                    </p>
+                  )}
+                  <p className="text-xs text-slate-400">
+                    Updated {formatDateTime(contact.valuations[0].fetched_at)}
+                  </p>
+                  {contact.valuations.length > 1 && (
+                    <details className="text-xs text-slate-500">
+                      <summary className="cursor-pointer text-slate-400">
+                        {contact.valuations.length - 1} earlier estimate{contact.valuations.length > 2 ? "s" : ""}
+                      </summary>
+                      <div className="mt-2 space-y-1">
+                        {contact.valuations.slice(1).map((v) => (
+                          <div key={v.id} className="flex justify-between">
+                            <span>{formatDateTime(v.fetched_at)}</span>
+                            <span>{formatCurrency(v.estimated_value ?? 0)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </>
+              )}
+            </div>
+          )}
           {contact.notes && (
             <div className="card p-6">
               <h3 className="text-sm font-semibold text-slate-900 mb-2">Notes</h3>

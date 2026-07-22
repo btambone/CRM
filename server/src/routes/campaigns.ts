@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db, STAGES } from "../db.js";
-import { isEmailConfigured, mergeTemplate, sendEmail } from "../mailer.js";
+import { HOME_VALUE_PATTERN, isEmailConfigured, mergeTemplate, sendEmail } from "../mailer.js";
+import { fetchHomeValue, isValuationConfigured } from "../valuations.js";
 
 export const campaignsRouter = Router();
 
@@ -59,6 +60,40 @@ function computeNextSendAt(scheduleType: string, intervalDays: number | null, da
     return toSqliteDatetime(now);
   }
   return null;
+}
+
+const VALUATION_FRESHNESS_DAYS = 25;
+
+function formatUsd(value: number | null): string | null {
+  if (value == null) return null;
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+}
+
+// Reuses a recent cached valuation for this contact if we have one, otherwise
+// fetches a fresh one from RentCast (costs money per lookup) and caches it.
+// Only called when a template actually references {{home_value}}, so
+// campaigns that don't mention home values never trigger paid API calls.
+async function resolveHomeValue(contact: any): Promise<string | null> {
+  if (!contact.property_address) return null;
+
+  const recent = db
+    .prepare(
+      `SELECT * FROM property_valuations WHERE contact_id = ? AND fetched_at >= datetime('now', ?) ORDER BY fetched_at DESC LIMIT 1`
+    )
+    .get(contact.id, `-${VALUATION_FRESHNESS_DAYS} days`);
+  if (recent) return formatUsd((recent as any).estimated_value);
+
+  if (!isValuationConfigured()) return null;
+
+  try {
+    const estimate = await fetchHomeValue(contact.property_address);
+    db.prepare(
+      `INSERT INTO property_valuations (contact_id, address, estimated_value, range_low, range_high) VALUES (?, ?, ?, ?, ?)`
+    ).run(contact.id, contact.property_address, estimate.price, estimate.rangeLow, estimate.rangeHigh);
+    return formatUsd(estimate.price);
+  } catch {
+    return null;
+  }
 }
 
 campaignsRouter.get("/audience-options", (_req, res) => {
@@ -176,7 +211,14 @@ campaignsRouter.post("/:id/test", async (req, res) => {
     });
   }
 
-  const testContact = { first_name: "Test", last_name: "Recipient", email, company_name: "Your Company" };
+  const needsHomeValue = HOME_VALUE_PATTERN.test(campaign.subject) || HOME_VALUE_PATTERN.test(campaign.body);
+  const testContact = {
+    first_name: "Test",
+    last_name: "Recipient",
+    email,
+    company_name: "Your Company",
+    home_value: needsHomeValue ? "$450,000 (sample)" : null,
+  };
   try {
     await sendEmail(email, mergeTemplate(campaign.subject, testContact), mergeTemplate(campaign.body, testContact));
     res.json({ ok: true });
@@ -187,6 +229,7 @@ campaignsRouter.post("/:id/test", async (req, res) => {
 
 async function sendCampaignNow(campaign: any) {
   const audience = resolveAudience(campaign.audience_type, campaign.audience_value);
+  const needsHomeValue = HOME_VALUE_PATTERN.test(campaign.subject) || HOME_VALUE_PATTERN.test(campaign.body);
   let sent = 0;
   let failed = 0;
 
@@ -194,7 +237,8 @@ async function sendCampaignNow(campaign: any) {
     const to = contact.email as string;
     try {
       if (!isEmailConfigured()) throw new Error("Email isn't set up yet (missing RESEND_API_KEY/EMAIL_FROM).");
-      await sendEmail(to, mergeTemplate(campaign.subject, contact), mergeTemplate(campaign.body, contact));
+      const mergeData = needsHomeValue ? { ...contact, home_value: await resolveHomeValue(contact) } : contact;
+      await sendEmail(to, mergeTemplate(campaign.subject, mergeData), mergeTemplate(campaign.body, mergeData));
       db.prepare(
         `INSERT INTO campaign_sends (campaign_id, contact_id, email, status) VALUES (?, ?, ?, 'sent')`
       ).run(campaign.id, contact.id, to);

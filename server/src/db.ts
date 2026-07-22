@@ -31,6 +31,7 @@ const SCHEMA = `
     phone TEXT,
     title TEXT,
     company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
+    property_address TEXT,
     notes TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -88,13 +89,34 @@ const SCHEMA = `
     sent_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS property_valuations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    contact_id INTEGER REFERENCES contacts(id) ON DELETE CASCADE,
+    address TEXT NOT NULL,
+    estimated_value REAL,
+    range_low REAL,
+    range_high REAL,
+    source TEXT NOT NULL DEFAULT 'rentcast',
+    fetched_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE INDEX IF NOT EXISTS idx_contacts_company ON contacts(company_id);
   CREATE INDEX IF NOT EXISTS idx_leads_contact ON leads(contact_id);
   CREATE INDEX IF NOT EXISTS idx_leads_company ON leads(company_id);
   CREATE INDEX IF NOT EXISTS idx_leads_stage ON leads(stage);
   CREATE INDEX IF NOT EXISTS idx_activities_lead ON activities(lead_id);
   CREATE INDEX IF NOT EXISTS idx_campaign_sends_campaign ON campaign_sends(campaign_id);
+  CREATE INDEX IF NOT EXISTS idx_property_valuations_contact ON property_valuations(contact_id);
 `;
+
+// Adds columns to tables that existed before this column was introduced.
+// CREATE TABLE IF NOT EXISTS only applies schema to brand-new tables, so a
+// database file created before a field was added needs an explicit ALTER.
+function ensureColumn(dbHandle: DbHandle, table: string, column: string, ddl: string): void {
+  const cols = dbHandle.prepare(`PRAGMA table_info(${table})`).all();
+  const exists = cols.some((c: any) => c.name === column);
+  if (!exists) dbHandle.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+}
 
 // Thin shim over sql.js that mimics the small subset of the better-sqlite3
 // API this app uses (prepare().all/get/run, exec, pragma), so route files
@@ -178,6 +200,7 @@ export async function initDb(): Promise<void> {
   db = new DbHandle(sqlDb, dbPath);
   db.pragma("foreign_keys = ON");
   db.exec(SCHEMA);
+  ensureColumn(db, "contacts", "property_address", "TEXT");
 }
 
 export const STAGES = [

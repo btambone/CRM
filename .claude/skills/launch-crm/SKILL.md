@@ -62,3 +62,8 @@ desktop shortcut: right-click `start-crm.bat` in File Explorer → *Send to*
   to start). Without that, campaigns can still be created/previewed but
   sending returns a clear "email isn't set up yet" error. See the
   README's "Enabling email campaigns" section for exact steps.
+- Home value lookups (the "Get Home Value" button on a contact, and the
+  `{{home_value}}` campaign field) are a separate optional setup: a
+  RentCast.io API key, also in `server/.env`. Unlike Resend, RentCast
+  charges per lookup beyond a small free tier — see the README's
+  "Enabling home value lookups" section before recommending it casually.

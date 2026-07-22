@@ -1,4 +1,14 @@
-import type { Activity, Analytics, AudienceOption, Campaign, Company, Contact, Lead, Stage } from "./types";
+import type {
+  Activity,
+  Analytics,
+  AudienceOption,
+  Campaign,
+  Company,
+  Contact,
+  Lead,
+  PropertyValuation,
+  Stage,
+} from "./types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -22,6 +32,8 @@ export const api = {
     update: (id: number | string, data: Partial<Contact>) =>
       request<Contact>(`/contacts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     remove: (id: number | string) => request<void>(`/contacts/${id}`, { method: "DELETE" }),
+    refreshValuation: (id: number | string) =>
+      request<PropertyValuation[]>(`/contacts/${id}/valuation`, { method: "POST" }),
   },
   companies: {
     list: (q = "") => request<Company[]>(`/companies?q=${encodeURIComponent(q)}`),

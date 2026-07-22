@@ -25,11 +25,24 @@ export interface Contact {
   title: string | null;
   company_id: number | null;
   company_name?: string | null;
+  property_address: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
   lead_count?: number;
   leads?: Lead[];
+  valuations?: PropertyValuation[];
+}
+
+export interface PropertyValuation {
+  id: number;
+  contact_id: number;
+  address: string;
+  estimated_value: number | null;
+  range_low: number | null;
+  range_high: number | null;
+  source: string;
+  fetched_at: string;
 }
 
 export type LeadStatus = "open" | "won" | "lost";

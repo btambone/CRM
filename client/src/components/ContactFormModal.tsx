@@ -20,6 +20,7 @@ export default function ContactFormModal({
   const [phone, setPhone] = useState(initial?.phone ?? "");
   const [title, setTitle] = useState(initial?.title ?? "");
   const [companyId, setCompanyId] = useState(initial?.company_id ?? "");
+  const [propertyAddress, setPropertyAddress] = useState(initial?.property_address ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -40,6 +41,7 @@ export default function ContactFormModal({
         phone: phone.trim() || null,
         title: title.trim() || null,
         company_id: companyId ? Number(companyId) : null,
+        property_address: propertyAddress.trim() || null,
         notes: notes.trim() || null,
       };
       const saved = initial
@@ -93,6 +95,19 @@ export default function ContactFormModal({
               ))}
             </select>
           </div>
+        </div>
+        <div>
+          <label className="label" htmlFor="contact-property-address">Property address</label>
+          <input
+            id="contact-property-address"
+            className="input"
+            placeholder="123 Main St, Phoenix, AZ 85001"
+            value={propertyAddress}
+            onChange={(e) => setPropertyAddress(e.target.value)}
+          />
+          <p className="text-xs text-slate-400 mt-1">
+            Powers the "Get Home Value" lookup and the <code>{"{{home_value}}"}</code> campaign field.
+          </p>
         </div>
         <div>
           <label className="label" htmlFor="contact-notes">Notes</label>

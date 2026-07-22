@@ -28,6 +28,12 @@ pipeline, and a business analytics dashboard.
   log. Requires a free [Resend](https://resend.com) account — see
   "Enabling email campaigns" below. Until that's set up, campaigns can still
   be created and previewed, just not sent.
+- **Home value lookups** (Homebot-style) — add a property address to any
+  contact to unlock a "Get Home Value" button on their profile and a
+  `{{home_value}}` field in campaigns, which pulls a live estimate from
+  RentCast and caches it so repeat sends within 25 days reuse the cached
+  number instead of paying for another lookup. See "Enabling home value
+  lookups" below — this is optional and off by default.
 
 The database starts empty — no sample leads/contacts are seeded. Add your own
 data through the UI.
@@ -69,6 +75,19 @@ The SQLite database file is created automatically at
 Recurring campaigns (weekly/monthly) only fire while the server process is
 running — there's no separate always-on scheduler, so the computer needs to
 be on with the CRM running for scheduled sends to go out on time.
+
+## Enabling home value lookups
+
+1. Sign up at [rentcast.io](https://rentcast.io) and create an API key
+   (there's a small free tier; beyond that it's roughly $0.10–0.20 per
+   address lookup).
+2. Add `RENTCAST_API_KEY` to `server/.env` (alongside the Resend variables).
+3. Restart the server.
+
+This only affects contacts that have a property address on file — add one
+in the contact's Edit form. Lookups are cached for 25 days per contact, so
+a monthly campaign re-uses the same estimate rather than paying for a fresh
+one on every send.
 
 ## Project structure
 
