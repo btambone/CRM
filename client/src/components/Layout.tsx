@@ -5,6 +5,7 @@ const navItems = [
   { to: "/pipeline", label: "Pipeline", icon: PipelineIcon },
   { to: "/contacts", label: "Contacts", icon: ContactsIcon },
   { to: "/companies", label: "Companies", icon: CompaniesIcon },
+  { to: "/campaigns", label: "Campaigns", icon: CampaignsIcon },
 ];
 
 export default function Layout() {
@@ -87,6 +88,15 @@ function CompaniesIcon({ className }: { className?: string }) {
       <rect x="3" y="7" width="14" height="10" rx="1.2" />
       <path d="M7 7V4.8A1.8 1.8 0 0 1 8.8 3h2.4A1.8 1.8 0 0 1 13 4.8V7" />
       <path d="M3 11h14" />
+    </svg>
+  );
+}
+
+function CampaignsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M3 5.5 10 10l7-4.5" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="3" y="5" width="14" height="10" rx="1.4" />
     </svg>
   );
 }

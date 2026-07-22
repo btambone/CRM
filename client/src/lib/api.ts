@@ -1,4 +1,14 @@
-import type { Activity, Analytics, Company, Contact, Lead, Stage } from "./types";
+import type {
+  Activity,
+  Analytics,
+  AudienceOption,
+  Campaign,
+  Company,
+  Contact,
+  Lead,
+  PropertyValuation,
+  Stage,
+} from "./types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -22,6 +32,8 @@ export const api = {
     update: (id: number | string, data: Partial<Contact>) =>
       request<Contact>(`/contacts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     remove: (id: number | string) => request<void>(`/contacts/${id}`, { method: "DELETE" }),
+    refreshValuation: (id: number | string) =>
+      request<PropertyValuation[]>(`/contacts/${id}/valuation`, { method: "POST" }),
   },
   companies: {
     list: (q = "") => request<Company[]>(`/companies?q=${encodeURIComponent(q)}`),
@@ -55,5 +67,23 @@ export const api = {
   },
   analytics: {
     get: () => request<Analytics>("/analytics"),
+  },
+  campaigns: {
+    audienceOptions: () => request<{ audienceTypes: AudienceOption[] }>("/campaigns/audience-options"),
+    list: () => request<Campaign[]>("/campaigns"),
+    get: (id: number | string) => request<Campaign>(`/campaigns/${id}`),
+    create: (data: Partial<Campaign>) =>
+      request<Campaign>("/campaigns", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: number | string, data: Partial<Campaign>) =>
+      request<Campaign>(`/campaigns/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    remove: (id: number | string) => request<void>(`/campaigns/${id}`, { method: "DELETE" }),
+    sendTest: (id: number | string, email: string) =>
+      request<{ ok: boolean }>(`/campaigns/${id}/test`, { method: "POST", body: JSON.stringify({ email }) }),
+    sendNow: (id: number | string) =>
+      request<{ sent: number; failed: number; audience: number }>(`/campaigns/${id}/send`, { method: "POST" }),
+    activate: (id: number | string) =>
+      request<Campaign>(`/campaigns/${id}/activate`, { method: "PATCH" }),
+    pause: (id: number | string) =>
+      request<Campaign>(`/campaigns/${id}/pause`, { method: "PATCH" }),
   },
 };

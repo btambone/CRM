@@ -22,6 +22,18 @@ pipeline, and a business analytics dashboard.
 - **Analytics** — a high-level dashboard covering open pipeline value, win
   rate, average deal size, revenue won, pipeline-by-stage funnel, leads
   created vs. deals won over time, lead sources, and team performance.
+- **Campaigns** — one-off or recurring (weekly/monthly) emails to a segment
+  of your contacts (all contacts, past clients, a pipeline stage, or a
+  company), with mail-merge fields, a test-send option, and a send history
+  log. Requires a free [Resend](https://resend.com) account — see
+  "Enabling email campaigns" below. Until that's set up, campaigns can still
+  be created and previewed, just not sent.
+- **Home value lookups** (Homebot-style) — add a property address to any
+  contact to unlock a "Get Home Value" button on their profile and a
+  `{{home_value}}` field in campaigns, which pulls a live estimate from
+  RentCast and caches it so repeat sends within 25 days reuse the cached
+  number instead of paying for another lookup. See "Enabling home value
+  lookups" below — this is optional and off by default.
 
 The database starts empty — no sample leads/contacts are seeded. Add your own
 data through the UI.
@@ -49,6 +61,33 @@ servers and open the browser automatically.
 
 The SQLite database file is created automatically at
 `server/data/crm.sqlite3` on first run.
+
+## Enabling email campaigns
+
+1. Sign up for a free account at [resend.com](https://resend.com) and
+   create an API key.
+2. Copy `server/.env.example` to `server/.env`.
+3. Fill in `RESEND_API_KEY` (from step 1) and `EMAIL_FROM` (an email
+   address you've verified with Resend — their free tier lets you send from
+   `onboarding@resend.dev` with no verification for testing).
+4. Restart the server (`npm run dev` again, or re-launch `start-crm.bat`).
+
+Recurring campaigns (weekly/monthly) only fire while the server process is
+running — there's no separate always-on scheduler, so the computer needs to
+be on with the CRM running for scheduled sends to go out on time.
+
+## Enabling home value lookups
+
+1. Sign up at [rentcast.io](https://rentcast.io) and create an API key
+   (there's a small free tier; beyond that it's roughly $0.10–0.20 per
+   address lookup).
+2. Add `RENTCAST_API_KEY` to `server/.env` (alongside the Resend variables).
+3. Restart the server.
+
+This only affects contacts that have a property address on file — add one
+in the contact's Edit form. Lookups are cached for 25 days per contact, so
+a monthly campaign re-uses the same estimate rather than paying for a fresh
+one on every send.
 
 ## Project structure
 
