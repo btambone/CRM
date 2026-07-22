@@ -1,4 +1,4 @@
-import type { Activity, Analytics, Company, Contact, Lead, Stage } from "./types";
+import type { Activity, Analytics, AudienceOption, Campaign, Company, Contact, Lead, Stage } from "./types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -55,5 +55,23 @@ export const api = {
   },
   analytics: {
     get: () => request<Analytics>("/analytics"),
+  },
+  campaigns: {
+    audienceOptions: () => request<{ audienceTypes: AudienceOption[] }>("/campaigns/audience-options"),
+    list: () => request<Campaign[]>("/campaigns"),
+    get: (id: number | string) => request<Campaign>(`/campaigns/${id}`),
+    create: (data: Partial<Campaign>) =>
+      request<Campaign>("/campaigns", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: number | string, data: Partial<Campaign>) =>
+      request<Campaign>(`/campaigns/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    remove: (id: number | string) => request<void>(`/campaigns/${id}`, { method: "DELETE" }),
+    sendTest: (id: number | string, email: string) =>
+      request<{ ok: boolean }>(`/campaigns/${id}/test`, { method: "POST", body: JSON.stringify({ email }) }),
+    sendNow: (id: number | string) =>
+      request<{ sent: number; failed: number; audience: number }>(`/campaigns/${id}/send`, { method: "POST" }),
+    activate: (id: number | string) =>
+      request<Campaign>(`/campaigns/${id}/activate`, { method: "PATCH" }),
+    pause: (id: number | string) =>
+      request<Campaign>(`/campaigns/${id}/pause`, { method: "PATCH" }),
   },
 };

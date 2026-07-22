@@ -71,6 +71,48 @@ export interface Stage {
   label: string;
 }
 
+export type AudienceType = "all_contacts" | "past_clients" | "stage" | "company";
+export type ScheduleType = "manual" | "weekly" | "monthly";
+export type CampaignStatus = "draft" | "active" | "paused";
+
+export interface Campaign {
+  id: number;
+  name: string;
+  subject: string;
+  body: string;
+  audience_type: AudienceType;
+  audience_value: string | null;
+  schedule_type: ScheduleType;
+  interval_days: number | null;
+  day_of_month: number | null;
+  status: CampaignStatus;
+  next_send_at: string | null;
+  last_sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+  audience_count?: number;
+  total_sent?: number;
+  sends?: CampaignSend[];
+}
+
+export interface CampaignSend {
+  id: number;
+  campaign_id: number;
+  contact_id: number | null;
+  email: string;
+  status: "sent" | "failed";
+  error: string | null;
+  sent_at: string;
+  first_name?: string | null;
+  last_name?: string | null;
+}
+
+export interface AudienceOption {
+  key: AudienceType;
+  label: string;
+  values?: Stage[];
+}
+
 export interface Analytics {
   totals: {
     contacts: number;

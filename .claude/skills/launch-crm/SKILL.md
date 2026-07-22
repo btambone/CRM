@@ -57,3 +57,8 @@ desktop shortcut: right-click `start-crm.bat` in File Explorer → *Send to*
 - If a command seems to error strangely (e.g. two commands appear glued
   together on one line), it's usually a paste issue in PowerShell — have
   them type the command manually or paste one line at a time.
+- Email campaigns (the Campaigns tab) need a one-time setup: a free
+  Resend.com account and API key in `server/.env` (copy `server/.env.example`
+  to start). Without that, campaigns can still be created/previewed but
+  sending returns a clear "email isn't set up yet" error. See the
+  README's "Enabling email campaigns" section for exact steps.

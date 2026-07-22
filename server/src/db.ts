@@ -61,11 +61,39 @@ const SCHEMA = `
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS campaigns (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    audience_type TEXT NOT NULL DEFAULT 'all_contacts',
+    audience_value TEXT,
+    schedule_type TEXT NOT NULL DEFAULT 'manual',
+    interval_days INTEGER,
+    day_of_month INTEGER,
+    status TEXT NOT NULL DEFAULT 'draft',
+    next_send_at TEXT,
+    last_sent_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS campaign_sends (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id INTEGER REFERENCES campaigns(id) ON DELETE CASCADE,
+    contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+    email TEXT NOT NULL,
+    status TEXT NOT NULL,
+    error TEXT,
+    sent_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE INDEX IF NOT EXISTS idx_contacts_company ON contacts(company_id);
   CREATE INDEX IF NOT EXISTS idx_leads_contact ON leads(contact_id);
   CREATE INDEX IF NOT EXISTS idx_leads_company ON leads(company_id);
   CREATE INDEX IF NOT EXISTS idx_leads_stage ON leads(stage);
   CREATE INDEX IF NOT EXISTS idx_activities_lead ON activities(lead_id);
+  CREATE INDEX IF NOT EXISTS idx_campaign_sends_campaign ON campaign_sends(campaign_id);
 `;
 
 // Thin shim over sql.js that mimics the small subset of the better-sqlite3
